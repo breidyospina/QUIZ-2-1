@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+ <head>
+   <title>Ejercicio 3.4 Transformación de una esfera-Breidy Ospina</title>
+   <style>
+     html, body { margin: 0; padding: 0; overflow: hidden; }
+   </style>
+ </head>
+ <body>
+	<div style="color: white;background-color: black;">	
+		<p ALIGN=center>
+			TRANSFORMACIÓN DE UNA ESFERA <br/>
+		</p>
+			<p ALIGN=left>
+			&nbsp;&nbsp;Instrucciones:<br/>
+            &nbsp;&nbsp;&nbsp;DEBE REALIZAR LA SECUENCIA EN ORDEN ASÍ:<br/>
+			&nbsp;&nbsp;&nbsp;1.Usar flecha arriba para ver la 1 transformación. <br/>
+			&nbsp;&nbsp;&nbsp;2.Usar flecha abajo para ver para ver la 2 transformación<br/>
+			&nbsp;&nbsp;&nbsp;3.Usar flecha izquierda para ver para ver la 3 transformación <br/>
+			&nbsp;&nbsp;&nbsp;4.Usar flecha abajo para ver para ver la 4 transformación<br/>
+        </p>
+	</div>	
+	
+   <script src="js/three.min.js"></script>
+   <script>
+   var scene, aspect, camera, renderer;
+   var startTime = Date.now();
+   //DEFINICIÓN DE LAS VARIABLES
+	 var radio=1;//radio
+	 var ncaras=8;//num de caras
+     var sverti=6;//segmentos verticales
+	 var upArrow = false;
+	 var downArrow = false;
+	 var leftArrow = false;
+     var rightArrow = false;
+
+   init();
+   animate();
+
+   function init()
+   {
+		scene = new THREE.Scene();
+		aspect = window.innerWidth / window.innerHeight;
+		camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+		renderer = new THREE.WebGLRenderer();
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		var size = 10;
+		var arrowSize = 4;
+		var divisions = size;
+		var origin = new THREE.Vector3( 0, 0, 0 );
+		var x = new THREE.Vector3( 1, 0, 0 );
+		var y = new THREE.Vector3( 0, 1, 0 );
+		var z = new THREE.Vector3( 0, 0, 1 );
+		var color1 = new THREE.Color( 0xFFFFFF );
+		var color2 = new THREE.Color( 0x333333 );
+		var colorR = new THREE.Color( 0xAA3333 );
+		var colorG = new THREE.Color( 0x33AA33 );
+		var colorB = new THREE.Color( 0x333366 );
+
+		 //CREAR LAS GRILLAS PARA EL ESCENARIO
+		 var axesHelper = new THREE.AxesHelper( size );
+		 var gridHelperXY = new THREE.GridHelper( size, divisions, color1, color1);
+		 var gridHelperXZ = new THREE.GridHelper( size, divisions, color2, color2 );
+		 var gridHelperYZ = new THREE.GridHelper( size, divisions, color2, color2 );
+		 gridHelperXY.rotateOnWorldAxis ( x, THREE.Math.degToRad(90) );
+		 gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
+		 gridHelperYZ.rotateOnWorldAxis ( z, THREE.Math.degToRad(90) );
+
+		 //CREAR LAS FLECHAS QUE INDICAN LOS EJES DE COORDENADAS 3D
+		 var arrowX = new THREE.ArrowHelper( x, origin, arrowSize, colorR );
+		 var arrowY = new THREE.ArrowHelper( y, origin, arrowSize, colorG );
+		 var arrowZ = new THREE.ArrowHelper( z, origin, arrowSize, colorB );
+
+		 //CREACIÓN DE GEOMETRIA
+		 var geometry = new THREE.SphereGeometry( radio, ncaras, sverti);
+		 //CREACIÓN DE MATERIALES
+		 var material = new THREE.MeshBasicMaterial( { color: 0x00F8FF } );
+		 var material2 = new THREE.MeshBasicMaterial( { color: 0xFF0000 } );
+         var material3 = new THREE.MeshBasicMaterial( { color: 0x7FFFD4 } );
+         var material4 = new THREE.MeshBasicMaterial( { color: 0x9F00FF } );
+		 //CREACION DE LAS 2 ESFERAS 
+		 esfera  = new THREE.Mesh( geometry, material );
+		 esfera2  = new THREE.Mesh( geometry, material2 );
+         esfera3  = new THREE.Mesh( geometry, material3 );
+         esfera4  = new THREE.Mesh( geometry, material4 );
+
+		//1.Trasladar las esferas sobre la grilla
+		esfera.applyMatrix4(matrizT(0,1,0));
+		esfera2.applyMatrix4(matrizT(0,1,0));
+        esfera3.applyMatrix4(matrizT(0,1,0));
+        esfera4.applyMatrix4(matrizT(0,1,0));
+		//2.Escalar esfera respecto al eje x
+		esfera2.applyMatrix4(matrizEx(0.5));
+		esfera3.applyMatrix4(matrizEx(0.5));
+        esfera4.applyMatrix4(matrizEx(0.5));
+        //3.Escalar esfera respecto al eje y
+		esfera3.applyMatrix4(matrizEy(0.5));
+        esfera4.applyMatrix4(matrizEy(0.5));
+        //4.Escalar esfera respecto al eje z
+		esfera4.applyMatrix4(matrizEz(3));
+
+		//EVENTOS DE TECLADO
+		//Códigos de teclado: http://keycode.info 
+		var onKeyDown = function ( event ) {
+			switch ( event.keyCode ) {
+				case 38: // MOSTRAR EL CONO INICIAL
+					upArrow = true;
+					break;
+				case 40: //MOSTRAR EL CONO TRANSFORMADO
+					downArrow = true;
+					break;
+                case 37: //
+                    leftArrow = true;
+                    break;
+                case 39: // 
+                    rightArrow = true;
+                    break;
+			}
+		}
+
+		var onKeyUp = function ( event ) {
+			switch ( event.keyCode ) {
+				case 38: // MOSTRAR EL CONO INICIAL
+					upArrow = false;
+					break;
+				case 40: //MOSTRAR EL CONO TRANSFORMADO
+					downArrow = false;
+					break;
+                case 37: //
+                    leftArrow = false;
+                    break;
+                case 39: // 
+                    rightArrow = false;
+                    break;
+			}
+		}
+
+		document.addEventListener( 'keydown', onKeyDown, false );
+		document.addEventListener( 'keyup', onKeyUp, false );
+        
+        
+		 //AÑADIR A LA ESCENA
+		 scene.add( esfera );
+		 /*scene.add( esfera2 );
+         scene.add( esfera3 );
+         scene.add( esfera4 );*/
+
+		 scene.add( gridHelperXZ );
+		 scene.add( arrowX );
+		 scene.add( arrowY );
+		 scene.add( arrowZ );
+
+		 //POSICION DE LA CAMARA
+		 camera.position.x = 3;
+		 camera.position.y = 5;
+		 camera.position.z = 5;
+		 
+
+		 camera.lookAt( origin );
+	 }
+
+	 function animate()
+	 {
+		 render();
+		 requestAnimationFrame( animate );
+	 }
+
+	 function render()
+	 {
+        var dtime = Date.now()-startTime;
+        camera.position.x = 10*Math.cos(dtime/10000);
+        camera.position.z = 10*Math.sin(dtime/10000);
+        camera.lookAt( 0, 0, 0 );
+        renderer.render( scene, camera );
+        
+        if(upArrow) {
+        scene.add( esfera );
+	    }
+        if(downArrow) {
+        scene.remove( esfera);
+        scene.add( esfera2 );
+        
+	    }
+        if(leftArrow) {
+        scene.remove( esfera);
+        scene.remove( esfera2 );
+        scene.add( esfera3 );
+	    }
+        if(rightArrow) {
+        scene.remove( esfera);
+        scene.remove( esfera2 );
+        scene.remove( esfera3 );
+        scene.add( esfera4 );
+	    }
+     }
+     function matrizEx(sx){
+        var te = new THREE.Matrix4();
+		//MATRIZ PARA ESCALAR EL CONO EN EL EJE X
+		 te.set
+			 ( 	sx, 0, 0,  0,
+ 				0, 1, 0,  0,
+ 				0, 0,  1, 0,
+ 				0, 0,  0,   1	);
+
+			return te;
+     }
+     function matrizEy(sy){
+        var tey = new THREE.Matrix4();
+		//MATRIZ PARA ESCALAR EL CONO EN EL EJE Y
+		 tey.set
+			 ( 	1, 0, 0,  0,
+ 				0, sy, 0,  0,
+ 				0, 0,  1, 0,
+ 				0, 0,  0,   1	);
+
+			return tey;
+     }
+     function matrizEz(sz){
+        var tez = new THREE.Matrix4();
+		//MATRIZ PARA ESCALAR EL CONO EN EL EJE Z
+		 tez.set
+			 ( 	1, 0, 0,  0,
+ 				0, 1, 0,  0,
+ 				0, 0,  sz, 0,
+ 				0, 0,  0,   1	);
+
+			return tez;
+     }
+     function matrizT(tx,ty,tz){
+        var t = new THREE.Matrix4();
+		//MATRIZ PARA TRASLADAR
+		 t.set
+			 ( 	1, 0, 0, tx,
+ 				0, 1, 0, ty,
+ 				0, 0, 1, tz,
+ 				0, 0, 0, 1	);
+
+			return t;
+     }
+     function matrizRx(angle){
+        var tr = new THREE.Matrix4();
+		//MATRIZ PARA ROTAR EN EL EJE X
+		 tr.set
+			 ( 	1, 0, 0, 0,
+ 				0, Math.cos(angle), -Math.sin(angle), 0,
+ 				0, Math.sin(angle),  Math.cos(angle), 0,
+ 				0, 0, 0, 1	);
+
+			return tr;
+     }
+     function matrizRy(angle){
+        var t2 = new THREE.Matrix4();
+		//MATRIZ PARA ROTAR EN EL EJE Y
+		 t2.set
+			 ( Math.cos(angle), 0, Math.sin(angle), 0,
+ 				0,1 , 0, 0,
+ 				-Math.sin(angle), 0,  Math.cos(angle), 0,
+ 				0, 0, 0, 1	);
+
+			return t2;
+     }
+     function matrizRz(angle){
+        var trz = new THREE.Matrix4();
+		//MATRIZ PARA ROTAR EN EL EJE Z
+		 trz.set
+			 ( 	Math.cos(angle),-Math.sin(angle), 0, 0,
+                Math.sin(angle),Math.cos(angle) ,0, 0,
+ 				0, 0,  1, 0,
+ 				0, 0, 0, 1	);
+
+			return trz;
+     }
+   
+   </script>
+ </body>
+</html>
